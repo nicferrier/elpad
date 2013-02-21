@@ -30,11 +30,33 @@
 (require 'kv)
 (require 'uuid)
 
+(defconst elpad/ws-port 9998
+  "Default websocket port.")
+
+(defconst elpad/ws-host "localhost"
+  "Default websocket hostname")
+
+(defgroup elpad nil
+  "An Elnode pastebin that dynamically updates.
+
+Elpad lets you share text editing across the web.  Users can send
+a piece of text to an Elpad server and send it updates with the
+websocket protocol."
+  :group 'applications)
+
+(defcustom elpad-websocket-port elpad/ws-port
+  "The TCP port used for the websocket server."
+  :group 'elpad
+  :type 'integer)
+
+(defcustom elpad-websocket-host elpad/ws-host
+  "The host used for the websocket server."
+  :group 'elpad
+  :type 'string)
+
+
 (defvar elpad/ws-server nil
   "Elpad's websocket server.")
-
-(defconst elpad/ws-port 9998)
-(defconst elpad/ws-host "localhost")
 
 (defconst elpad/buffer-list (make-hash-table :test 'equal)
   "List of all the buffers the elpad server is holding.")
@@ -87,7 +109,7 @@ Return the buffer's unique ID."
   "Initialize the websocket server."
   (setq elpad/ws-server
         (websocket-server
-         elpad/ws-port
+         elpad-websocket-port
          :on-message 'elpad/on-message
          :on-open 'elpad/on-open
          :on-close 'elpad/on-close)))
@@ -102,7 +124,10 @@ Return the buffer's unique ID."
       ((and pad-id (gethash pad-id elpad/buffer-list))
         (elnode-send-redirect
          httpcon
-         (format "ws://%s:%s;id=%s" elpad/ws-host elpad/ws-port pad-id)))
+         (format "ws://%s:%s;id=%s"
+                 elpad-websocket-host
+                 elpad-websocket-port
+                 pad-id)))
       ;; We have no pad-id - possibly we could send list of recent pads?
       ((not pad-id)
        (elnode-send-json httpcon '(nothing)))
