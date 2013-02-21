@@ -1,35 +1,103 @@
 ;;; elpad web editor with emacs -*- lexical-binding: t -*-
 
 (require 'elnode)
+(require 'kv)
+(require 'uuid)
 
-(defun elpad-pad-change (httpcon)
-  (let* ((pos
-          (string-to-int (elnode-http-param httpcon "pos")))
-         (change (elnode-http-param httpcon "change"))
-         (change-char (string-to-int change)))
-    (with-current-buffer (get-buffer-create "*test*")
-      (goto-char pos)
-      (case change-char
-        (8 (delete-char -1))
-        (13 (newline))
-        (t (insert (make-char 'ascii change-char)))))
-    (elnode-send-json httpcon '(("status" . "done")))))
+(defvar elpad/ws-server nil
+  "Elpad's websocket server.")
+
+(defconst elpad/ws-port 9998)
+(defconst elpad/ws-host "localhost")
+
+(defconst elpad/buffer-list (make-hash-table :test 'equal)
+  "List of all the buffers the elpad server is holding.")
+
+(defun elpad/make-buffer ()
+  "Add a new buffer to the buffer list.
+
+Return the buffer's unique ID."
+  (let* ((unique (uuid-string))
+         (buf (get-buffer-create unique)))
+    (puthash unique buf elpad/buffer-list)
+    unique))
+
+;; (setq nic-buf (elpad/make-buffer))
+
+(defun elpad/send (socket data)
+  (websocket-send-text
+   socket
+   (json-encode data)))
+
+(defun elpad/on-message (socket frame)
+  "Handle FRAME from SOCKET."
+  (let* ((fd (websocket-frame-payload frame))
+         (data (let ((json-array-type 'list))
+                 (json-read-from-string fd))))
+    (case (intern (car data))
+      (connect
+       (destructuring-bind (buf-handle) (cdr data)
+         (let* ((buf (gethash buf-handle elpad/buffer-list))
+                (str (with-current-buffer buf
+                       (buffer-substring-no-properties
+                        (point-min) (point-max)))))
+           (elpad/send socket (list 'yeah buf-handle str)))))
+      (change
+       ;;(message "elpad/on-message change %S" (cdr data))
+       (destructuring-bind (buf-handle beg end len str) (cdr data)
+         (with-current-buffer (gethash buf-handle elpad/buffer-list)
+           (if (> len 0)
+               (delete-region beg (+ end len))
+               (goto-char beg)
+               (insert str))))))))
+
+(defun elpad/on-open (websocket)
+  (message "elpad websocket open %S" websocket))
+
+(defun elpad/on-close (websocket)
+  (message "elpad websocket close"))
+
+(defun elpad/ws-init ()
+  "Initialize the websocket server."
+  (setq elpad/ws-server
+        (websocket-server
+         elpad/ws-port
+         :on-message 'elpad/on-message
+         :on-open 'elpad/on-open
+         :on-close 'elpad/on-close)))
 
 (defun elpad-pad (httpcon)
-  "Get the contents of the pad."
-  (with-current-buffer (get-buffer-create "*test*")
-    (elnode-send-json
-     httpcon
-     (list (cons "text" (buffer-substring (point-min)(point-max)))))))
+  "Find a particular pad."
+  ;; This should probably also support POST
+  ;; POST to it, get back the new pad-id from elpad/make-buffer
+  (let ((pad-id (elnode-http-mapping httpcon 1)))
+    (cond
+      ;; Do we have a pad of that ID? - send redirect to websocket
+      ((and pad-id (gethash pad-id elpad/buffer-list))
+        (elnode-send-redirect
+         httpcon
+         (format "ws://%s:%s;id=%s" elpad/ws-host elpad/ws-port pad-id)))
+      ;; We have no pad-id - possibly we could send list of recent pads?
+      ((not pad-id)
+       (elnode-send-json httpcon '(nothing)))
+      (t
+       (elnode-send-404 httpcon "No such pad.")))))
 
 (defun elpad-handler (httpcon)
+  ;; Initialize the websocket server socket
+  (unless (equal 'listen (process-status elpad/ws-server))
+    (elpad/ws-init))
   (elnode-dispatcher
    httpcon
    `(("^/$" . ,(elnode-make-send-file "~/work/elpad/index.html"))
-     ("^/change/" . elpad-pad-change)
-     ("^/pad/" . elpad-pad)
+     ("^/pad/\\([^/]*\\).*" . elpad-pad)
      ("^/app.js" . ,(elnode-make-send-file "app.js"))
      ("^/diff.js" . ,(elnode-make-send-file "diff.js"))
      ("^/jquery.js" . ,(elnode-make-send-file "jquery.js")))))
+
+(defun elpad-stop ()
+  "Stop the elpad websocket server."
+  (interactive)
+  (websocket-server-close elpad/ws-server))
 
 ;;; elpad.el ends here

@@ -1,0 +1,19 @@
+= Elpad - updating pastes =
+
+Elpad is a server for sharing text snippets with other people. But
+also for sharing the process of editing text with other people.
+
+When you push a piece of text to elpad you can give other people the
+url, just like you can with gist or pastebin... but you can carry on
+typing and people can see it updating.
+
+Elpad isn't exactly text sharing, you can only share what exists in
+Elpad. You can't ask Elpad to share what you're working on now... only
+a copy of what you're working on now.
+
+
+* paste text to elpad
+* get a redirect to a buffer back
+* connect to the buffer
+** websocket pulls the buffer
+** start typing
