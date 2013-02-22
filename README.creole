@@ -11,9 +11,3 @@ Elpad isn't exactly text sharing, you can only share what exists in
 Elpad. You can't ask Elpad to share what you're working on now... only
 a copy of what you're working on now.
 
-
-* paste text to elpad
-* get a redirect to a buffer back
-* connect to the buffer
-** websocket pulls the buffer
-** start typing
