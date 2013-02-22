@@ -189,4 +189,6 @@ Return the buffer's unique ID."
   (interactive)
   (websocket-server-close elpad/ws-server))
 
+(provide 'elpad)
+
 ;;; elpad.el ends here
