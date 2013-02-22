@@ -24,6 +24,10 @@ footer {
     padding: 1em 1em 10em;
 }
 
+footer ul {
+    list-style-type: none;
+}
+
 .copyright {
     float: right;
 }
@@ -34,4 +38,5 @@ footer {
 
 ul#pad-list li {
     list-style-type: none;
+    font-family: courier;
 }

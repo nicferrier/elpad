@@ -51,6 +51,19 @@ websocket protocol."
   :group 'elpad
   :type 'string)
 
+(defcustom elpad-footer "
+<small class=\"copyright\">(C) Nic Ferrier 2013</small>
+<ul>
+    <li><a href=\"http://github.com/nicferrier/elpad\">elpad github</a></li>
+    <li><a href=\"http://github.com/nicferrier/elnode\">elnode github</a></li>
+    <li><a href=\"http://elnode.org\">elnode site</a></li>
+    <li><a href=\"http://emacswiki.org/emacs/NicFerrier\">nic's emacs-wiki</a></li>
+    <li><a href=\"http://nic.ferrier.me.uk\">nic's blog</a></li>
+</ul>"
+  "Footer text for the HTML pages."
+  :group 'elpad
+  :type 'string)
+
 
 (defvar elpad/ws-server nil
   "Elpad's websocket server.")
@@ -235,7 +248,8 @@ Return the buffer's unique ID."
      :replacements
      `(("title" . ,user)
        ("username" . ,(elpad/email->username user))
-       ("pads" . ,buffers-json)))))
+       ("pads" . ,buffers-json)
+       ("footer" . ,elpad-footer)))))
 
 (defun elpad-handler (httpcon)
   ;; Initialize the websocket server socket
@@ -244,7 +258,12 @@ Return the buffer's unique ID."
   (let ((webserver (elnode-webserver-handler-maker elpad-dir)))
     (elnode-dispatcher
      httpcon
-     `(("^/$" . ,(elnode-make-send-file (concat elpad-dir "index.html")))
+     `(("^/$" . ,(elnode-make-send-file
+                  (concat elpad-dir "index.html")
+                  :replacements
+                  (lambda ()
+                    `(("footer" . ,elpad-footer)))
+                  :replacements-pattern "{\\[\\([^]]+\\)\\]}"))
        ("^/-/\\(.*\\)$" . ,webserver)
        ("^/pad/\\([^/]*\\).*" . elpad-pad)
        ("^/user/\\([^/]+\\).*" . elpad-user)
