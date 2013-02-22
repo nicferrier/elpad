@@ -4,8 +4,6 @@
 
 ;; Author: Nic Ferrier <nferrier@ferrier.me.uk>
 ;; Keywords: hypermedia
-;; Package-Requires: ((websocket "1.0")(elnode "0.9.9.6.4")(uuid "0.0.3"))
-;; Version: 0.0.0.201302211612
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
