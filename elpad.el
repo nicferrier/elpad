@@ -223,6 +223,17 @@ Return the buffer's unique ID."
               :text (unless (equal "" text) text))))
        (elnode-send-redirect httpcon (format "/pad/%s/" handle))))))
 
+(defun elpad-user (httpcon)
+  "Present list of pads for the user."
+  (let* ((user (elnode-http-mapping httpcon 1))
+         (buffers-json (json-encode (gethash user elpad/users)))
+         (elnode-replacements-pattern "{\\[\\([^]]+\\)\\]}"))
+    (elnode-send-file
+     httpcon (concat elpad-dir "template.html")
+     :replacements
+     `(("title" . ,user)
+       ("pads" . ,buffers-json)))))
+
 (defun elpad-handler (httpcon)
   ;; Initialize the websocket server socket
   (unless (equal 'listen (process-status elpad/ws-server))
@@ -231,6 +242,7 @@ Return the buffer's unique ID."
    httpcon
    `(("^/$" . ,(elnode-make-send-file "~/work/elpad/index.html"))
      ("^/pad/\\([^/]*\\).*" . elpad-pad)
+     ("^/user/\\([^/]+\\).*" . elpad-user)
      ("^/app.js" . ,(elnode-make-send-file "app.js"))
      ("^/diff.js" . ,(elnode-make-send-file "diff.js"))
      ("^/jquery.js" . ,(elnode-make-send-file "jquery.js")))))
