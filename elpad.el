@@ -22,7 +22,8 @@
 
 ;;; Commentary:
 
-;; A client for elpad.
+;; The Elpad server.  Stores elpads and runs the websocket server to
+;; connect to them.
 
 ;;; Code:
 
