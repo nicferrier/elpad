@@ -21,9 +21,7 @@ body {
 footer {
     background-color: #eeeeee;
     border: dotted thin LightSlateGrey;
-    clear: both;
-    padding: 1em, 1em, 10em;
-    margin: 1em, 1em;
+    padding: 1em 1em 10em;
 }
 
 .copyright {
