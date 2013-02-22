@@ -223,6 +223,10 @@ Return the buffer's unique ID."
               :text (unless (equal "" text) text))))
        (elnode-send-redirect httpcon (format "/pad/%s/" handle))))))
 
+(defun elpad/email->username (email)
+  (when (string-match "\\([^@]+\\)@.*" email)
+    (match-string 1 email)))
+
 (defun elpad-user (httpcon)
   "Present list of pads for the user."
   (let* ((user (elnode-http-mapping httpcon 1))
@@ -232,6 +236,7 @@ Return the buffer's unique ID."
      httpcon (concat elpad-dir "template.html")
      :replacements
      `(("title" . ,user)
+       ("username" . ,(elpad/email->username user))
        ("pads" . ,buffers-json)))))
 
 (defun elpad-handler (httpcon)
