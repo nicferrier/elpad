@@ -100,6 +100,40 @@ Return the buffer's unique ID."
            elpad/users)))
       unique)))
 
+(defun elpad/buffer-list-entries ()
+  (let ((ids->users
+         (loop for (username . buf-list) in (kvhash->alist elpad/users)
+            append
+              (loop for buf in buf-list
+                 collect (cons buf username))))
+        (ids->tags
+         (loop for (tag . buf-list) in (kvhash->alist elpad/tags)
+            append
+              (loop for buf in buf-list ; this is wrong - throws away tags
+                 collect (cons buf tag)))))
+    (loop for (id . buffer) in (kvhash->alist elpad/buffer-list)
+       collect
+         (list id
+               (vector
+                id (aget ids->users id) (or (aget ids->tags id) ""))))))
+
+(define-derived-mode
+    elpad-buffer-list-mode tabulated-list-mode "Elpad buffer list"
+    "Major mode for listing Elpad buffers under the server."
+    (setq tabulated-list-entries 'elpad/buffer-list-entries)
+    (setq tabulated-list-format
+          [("Buffer ID" 40 nil)
+           ("User" 40 nil)
+           ("Tags" 40 nil)]))
+
+(defun elpad-list-buffers ()
+  "List the current buffers in elpad."
+  (interactive)
+  (with-current-buffer (get-buffer-create "*elpad-buffers*")
+    (elpad-buffer-list-mode)
+    (tabulated-list-print)
+    (switch-to-buffer (current-buffer))))
+
 (defun elpad/send (socket data)
   (websocket-send-text
    socket
