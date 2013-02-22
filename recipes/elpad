@@ -1,0 +1,25 @@
+(elpad
+ :version "0.0.0.201302211612"
+ :doc "The Elpad server."
+ :requires 
+ ((websocket "1.0")
+  (elnode "0.9.9.6.4")
+  (uuid "0.0.3")
+  (kv "0.0.9"))
+ :files 
+ ("elpad.el" 
+  "bootstrap.css"
+  "bootstrap.js"
+  "bootstrap-lightbox.css"
+  "bootstrap-lightbox.js"
+  "bootstrap.min.js"
+  "bootstrap-responsive.css"
+  "index.html"
+  "jquery.js"
+  "style.css"
+  "template.html"
+  "README.creole"
+  "COPYING")
+ :test
+ (:files
+  ("elppad-tests.el")))
