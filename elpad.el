@@ -27,10 +27,7 @@
 
 ;;; Code:
 
-(require 'cl)
-(require 'elnode)
-(require 'kv)
-(require 'uuid)
+(elnode-app elpad-dir cl elnode kv uuid)
 
 (defconst elpad/ws-port 9998
   "Default websocket port.")
