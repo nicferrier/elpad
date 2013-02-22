@@ -137,7 +137,8 @@ Return the buffer's unique ID."
           [("Buffer ID" 40 nil)
            ("User" 40 nil)
            ("Tags" 40 nil)])
-    (define-key elpad-buffer-list-mode-map (kbd "\n") 'elpad-show-buffer))
+    (define-key elpad-buffer-list-mode-map (kbd "\r") 'elpad-show-buffer)
+    (tabulated-list-init-header))
 
 (defun elpad-list-buffers ()
   "List the current buffers in elpad."
