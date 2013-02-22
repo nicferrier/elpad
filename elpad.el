@@ -27,6 +27,7 @@
 
 ;;; Code:
 
+(require 'cl)
 (require 'elnode)
 (require 'kv)
 (require 'uuid)
@@ -62,16 +63,42 @@ websocket protocol."
 (defconst elpad/buffer-list (make-hash-table :test 'equal)
   "List of all the buffers the elpad server is holding.")
 
-(defun elpad/make-buffer ()
+(defconst elpad/tags (make-hash-table :test 'equal)
+  "Map of tags to lists of pad ids.")
+
+(defconst elpad/users (make-hash-table :test 'equal)
+  "Map of usernames to lists of pad ids.")
+
+(defun* elpad/make-buffer (&key username text tags)
   "Add a new buffer to the buffer list.
+
+USERNAME is an optional username to attach the resulting buffer
+to.  TAGS is an optional list of tags with which to index the
+buffer.
+
+TEXT is optional text to add to the buffer.
 
 Return the buffer's unique ID."
   (let* ((unique (uuid-string))
          (buf (get-buffer-create unique)))
     (puthash unique buf elpad/buffer-list)
-    unique))
-
-;; (setq nic-buf (elpad/make-buffer))
+    (when text
+      (with-current-buffer buf
+        (insert text)))
+    (when tags
+      (loop for tag in tags
+         do (let ((buf-ids (gethash tag elpad/tags)))
+              (unless (member unique buf-ids)
+                (puthash
+                 tag (append (list unique) buf-ids)
+                 elpad/tags)))))
+    (when username
+      (let ((buf-ids (gethash username elpad/users)))
+        (unless (member unique buf-ids)
+          (puthash
+           username (append (list unique) buf-ids)
+           elpad/users)))
+      unique)))
 
 (defun elpad/send (socket data)
   (websocket-send-text
@@ -116,24 +143,34 @@ Return the buffer's unique ID."
          :on-close 'elpad/on-close)))
 
 (defun elpad-pad (httpcon)
-  "Find a particular pad."
-  ;; This should probably also support POST
-  ;; POST to it, get back the new pad-id from elpad/make-buffer
-  (let ((pad-id (elnode-http-mapping httpcon 1)))
-    (cond
-      ;; Do we have a pad of that ID? - send redirect to websocket
-      ((and pad-id (gethash pad-id elpad/buffer-list))
-        (elnode-send-redirect
-         httpcon
-         (format "ws://%s:%s;id=%s"
-                 elpad-websocket-host
-                 elpad-websocket-port
-                 pad-id)))
-      ;; We have no pad-id - possibly we could send list of recent pads?
-      ((not pad-id)
-       (elnode-send-json httpcon '(nothing)))
-      (t
-       (elnode-send-404 httpcon "No such pad.")))))
+  "Find a particular pad or make a new one."
+  (elnode-method httpcon
+    (GET
+     (let ((pad-id (elnode-http-mapping httpcon 1)))
+       (cond
+         ;; Do we have a pad of that ID? - send redirect to websocket
+         ((and pad-id (gethash pad-id elpad/buffer-list))
+          (elnode-send-redirect
+           httpcon
+           (format "ws://%s:%s;id=%s"
+                   elpad-websocket-host
+                   elpad-websocket-port
+                   pad-id)))
+         ;; We have no pad-id - possibly we could send list of recent pads?
+         ((not pad-id)
+          (elnode-send-json httpcon '(nothing)))
+         (t
+          (elnode-send-404 httpcon "No such pad.")))))
+    (POST
+     (let* ((username (elnode-http-param httpcon "username"))
+            (tags (elnode-http-param httpcon "tags"))
+            (text (elnode-http-param httpcon "text"))
+            (handle
+             (elpad/make-buffer
+              :username (unless (equal "" username) username)
+              :tags (unless (equal "" tags) (split-string tags))
+              :text (unless (equal "" text) text))))
+       (elnode-send-redirect httpcon (format "/pad/%s/" handle))))))
 
 (defun elpad-handler (httpcon)
   ;; Initialize the websocket server socket
