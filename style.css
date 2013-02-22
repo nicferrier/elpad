@@ -1,0 +1,21 @@
+body {
+    font-family: sans-serif;
+}
+
+.hidden {
+    display: none;
+}
+
+ul#pad-list li {
+    list-style-type: none;
+}
+
+footer {
+    clear: both;
+    margin-top: 5em;
+    padding-top: 2em;
+    background-color: #eeeeee;
+    border: dotted thin LightSlateGrey;
+    padding-bottom: 10em;
+    bottom: 0;
+}
