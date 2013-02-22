@@ -69,6 +69,7 @@ websocket protocol."
 (defconst elpad/users (make-hash-table :test 'equal)
   "Map of usernames to lists of pad ids.")
 
+
 (defun* elpad/make-buffer (&key username text tags)
   "Add a new buffer to the buffer list.
 
@@ -101,6 +102,7 @@ Return the buffer's unique ID."
       unique)))
 
 (defun elpad/buffer-list-entries ()
+  "List the buffers controlled by the elpad server."
   (let ((ids->users
          (loop for (username . buf-list) in (kvhash->alist elpad/users)
             append
@@ -117,6 +119,16 @@ Return the buffer's unique ID."
                (vector
                 id (aget ids->users id) (or (aget ids->tags id) ""))))))
 
+(defun elpad-show-buffer (id)
+  "Show an elpad buffer from the list."
+  (interactive
+   (list
+    (save-excursion
+      (goto-char (line-beginning-position))
+      (re-search-forward "\\([^ ]+\\)" nil t)
+      (match-string 1))))
+  (switch-to-buffer (get-buffer id)))
+
 (define-derived-mode
     elpad-buffer-list-mode tabulated-list-mode "Elpad buffer list"
     "Major mode for listing Elpad buffers under the server."
@@ -124,7 +136,8 @@ Return the buffer's unique ID."
     (setq tabulated-list-format
           [("Buffer ID" 40 nil)
            ("User" 40 nil)
-           ("Tags" 40 nil)]))
+           ("Tags" 40 nil)])
+    (define-key elpad-buffer-list-mode-map (kbd "\n") 'elpad-show-buffer))
 
 (defun elpad-list-buffers ()
   "List the current buffers in elpad."
@@ -133,6 +146,9 @@ Return the buffer's unique ID."
     (elpad-buffer-list-mode)
     (tabulated-list-print)
     (switch-to-buffer (current-buffer))))
+
+
+;; Websocket handling routines
 
 (defun elpad/send (socket data)
   (websocket-send-text
@@ -175,6 +191,9 @@ Return the buffer's unique ID."
          :on-message 'elpad/on-message
          :on-open 'elpad/on-open
          :on-close 'elpad/on-close)))
+
+
+;; Elnode stuff
 
 (defun elpad-pad (httpcon)
   "Find a particular pad or make a new one."
