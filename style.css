@@ -1,5 +1,33 @@
+html, body {
+    height: 100%;
+}
+
 body {
     font-family: sans-serif;
+}
+
+#out {
+    min-height: 100%;
+    height: auto !important;
+    height: 100%;
+    /* Negative indent footer by it's height */
+    margin: 0 auto -60px;
+}
+
+#push, footer {
+    height: 60px;
+}
+
+footer {
+    background-color: #eeeeee;
+    border: dotted thin LightSlateGrey;
+    clear: both;
+    padding: 1em, 1em, 10em;
+    margin: 1em, 1em;
+}
+
+.copyright {
+    float: right;
 }
 
 .hidden {
@@ -8,14 +36,4 @@ body {
 
 ul#pad-list li {
     list-style-type: none;
-}
-
-footer {
-    clear: both;
-    margin-top: 5em;
-    padding-top: 2em;
-    background-color: #eeeeee;
-    border: dotted thin LightSlateGrey;
-    padding-bottom: 10em;
-    bottom: 0;
 }

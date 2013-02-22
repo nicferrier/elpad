@@ -246,7 +246,7 @@ Return the buffer's unique ID."
   (let ((webserver (elnode-webserver-handler-maker elpad-dir)))
     (elnode-dispatcher
      httpcon
-     `(("^/$" . ,(elnode-make-send-file "~/work/elpad/index.html"))
+     `(("^/$" . ,(elnode-make-send-file (concat elpad-dir "index.html")))
        ("^/-/\\(.*\\)$" . ,webserver)
        ("^/pad/\\([^/]*\\).*" . elpad-pad)
        ("^/user/\\([^/]+\\).*" . elpad-user)
