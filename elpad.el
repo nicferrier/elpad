@@ -162,9 +162,9 @@ Return the buffer's unique ID."
          (t
           (elnode-send-404 httpcon "No such pad.")))))
     (POST
-     (let* ((username (elnode-http-param httpcon "username"))
-            (tags (elnode-http-param httpcon "tags"))
-            (text (elnode-http-param httpcon "text"))
+     (let* ((username (elnode-http-param httpcon "username" ""))
+            (tags (elnode-http-param httpcon "tags" ""))
+            (text (elnode-http-param httpcon "text" ""))
             (handle
              (elpad/make-buffer
               :username (unless (equal "" username) username)
