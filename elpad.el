@@ -243,14 +243,16 @@ Return the buffer's unique ID."
   ;; Initialize the websocket server socket
   (unless (equal 'listen (process-status elpad/ws-server))
     (elpad/ws-init))
-  (elnode-dispatcher
-   httpcon
-   `(("^/$" . ,(elnode-make-send-file "~/work/elpad/index.html"))
-     ("^/pad/\\([^/]*\\).*" . elpad-pad)
-     ("^/user/\\([^/]+\\).*" . elpad-user)
-     ("^/app.js" . ,(elnode-make-send-file "app.js"))
-     ("^/diff.js" . ,(elnode-make-send-file "diff.js"))
-     ("^/jquery.js" . ,(elnode-make-send-file "jquery.js")))))
+  (let ((webserver (elnode-webserver-handler-maker elpad-dir)))
+    (elnode-dispatcher
+     httpcon
+     `(("^/$" . ,(elnode-make-send-file "~/work/elpad/index.html"))
+       ("^/-/\\(.*\\)$" . ,webserver)
+       ("^/pad/\\([^/]*\\).*" . elpad-pad)
+       ("^/user/\\([^/]+\\).*" . elpad-user)
+       ("^/app.js" . ,(elnode-make-send-file "app.js"))
+       ("^/diff.js" . ,(elnode-make-send-file "diff.js"))
+       ("^/jquery.js" . ,(elnode-make-send-file "jquery.js"))))))
 
 (defun elpad-stop ()
   "Stop the elpad websocket server."
