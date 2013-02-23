@@ -23,4 +23,4 @@
   "COPYING")
  :test
  (:files
-  ("elppad-tests.el")))
+  ("elpad-tests.el")))

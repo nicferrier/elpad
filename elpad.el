@@ -25,7 +25,7 @@
 
 ;;; Code:
 
-(elnode-app elpad-dir cl elnode kv uuid)
+(elnode-app elpad-dir cl elnode kv uuid websocket)
 
 (defconst elpad/ws-port 9998
   "Default websocket port.")
@@ -88,13 +88,13 @@ websocket protocol."
 (defvar elpad/ws-server nil
   "Elpad's websocket server.")
 
-(defconst elpad/buffer-list (make-hash-table :test 'equal)
+(defvar elpad/buffer-list (make-hash-table :test 'equal)
   "List of all the buffers the elpad server is holding.")
 
-(defconst elpad/tags (make-hash-table :test 'equal)
+(defvar elpad/tags (make-hash-table :test 'equal)
   "Map of tags to lists of pad ids.")
 
-(defconst elpad/users (make-hash-table :test 'equal)
+(defvar elpad/users (make-hash-table :test 'equal)
   "Map of usernames to lists of pad ids.")
 
 
@@ -299,9 +299,9 @@ Return the buffer's unique ID."
 
 ;;;###autoload
 (eval-after-load 'elpad
-  (when (and (boundp 'elpad-auto-start)
-             (> elpad-elnode-port 0)
-             elpad-auto-start)
+  '(when (and (boundp 'elpad-auto-start)
+          (> elpad-elnode-port 0)
+          elpad-auto-start)
     (elnode-start
      'elpad-handler
      :port elpad-elnode-port
