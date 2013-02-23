@@ -41,6 +41,26 @@ a piece of text to an Elpad server and send it updates with the
 websocket protocol."
   :group 'applications)
 
+(defcustom elpad-auto-start nil
+  "Whether to auto-start Elpad or not."
+  :group 'elpad
+  :type 'string)
+
+(defcustom elpad-elnode-port 0
+  "The TCP port used for the elpad HTTP server."
+  :group 'elpad
+  :type 'integer)
+
+(defcustom elpad-elnode-host elpad/ws-host
+  "The TCP port used for the elpad HTTP server."
+  :group 'elpad
+  :type 'string)
+
+(defcustom elpad-websocket-host elpad/ws-host
+  "The host used for the websocket server."
+  :group 'elpad
+  :type 'string)
+
 (defcustom elpad-websocket-port elpad/ws-port
   "The TCP port used for the websocket server."
   :group 'elpad
@@ -251,6 +271,7 @@ Return the buffer's unique ID."
        ("pads" . ,buffers-json)
        ("footer" . ,elpad-footer)))))
 
+;;;###autoload
 (defun elpad-handler (httpcon)
   ;; Initialize the websocket server socket
   (unless (equal 'listen (process-status elpad/ws-server))
@@ -275,6 +296,16 @@ Return the buffer's unique ID."
   "Stop the elpad websocket server."
   (interactive)
   (websocket-server-close elpad/ws-server))
+
+;;;###autoload
+(eval-after-load 'elpad
+  (when (and (boundp 'elpad-auto-start)
+             (> elpad-elnode-port 0)
+             elpad-auto-start)
+    (elnode-start
+     'elpad-handler
+     :port elpad-elnode-port
+     :host elpad-elnode-host)))
 
 (provide 'elpad)
 
