@@ -184,27 +184,44 @@ Return the buffer's unique ID."
    socket
    (json-encode data)))
 
+(defvar elpad/buffer-websockets nil
+  "Buffer local list of Websockets connected to this buffer.")
+
+(make-variable-buffer-local 'elpad/buffer-websockets)
+
 (defun elpad/on-message (socket frame)
   "Handle FRAME from SOCKET."
-  (let* ((fd (websocket-frame-payload frame))
+  (let* ((frame-data (websocket-frame-payload frame))
          (data (let ((json-array-type 'list))
-                 (json-read-from-string fd))))
+                 (json-read-from-string frame-data))))
     (case (intern (car data))
       (connect
        (destructuring-bind (buf-handle) (cdr data)
          (let* ((buf (gethash buf-handle elpad/buffer-list))
                 (str (with-current-buffer buf
+                       ;; Really need to fix this to be add-to-list
+                       (setq elpad/buffer-websockets
+                             (append (list socket)
+                                     elpad/buffer-websockets))
                        (buffer-substring-no-properties
                         (point-min) (point-max)))))
            (elpad/send socket (list 'yeah buf-handle str)))))
       (change
-       ;;(message "elpad/on-message change %S" (cdr data))
        (destructuring-bind (buf-handle beg end len str) (cdr data)
+         ;; Update the copy we have here
          (with-current-buffer (gethash buf-handle elpad/buffer-list)
            (if (> len 0)
                (delete-region beg (+ end len))
                (goto-char beg)
-               (insert str))))))))
+               (insert str))
+           ;; Then update the other sockets
+           (loop for sock in elpad/buffer-websockets
+              unless (equal socket sock)
+              do
+                (condition-case err
+                    (elpad/send
+                     sock (list 'sync buf-handle beg end len str))
+                  (error (message "whoops! that one looks dead"))))))))))
 
 (defun elpad/on-open (websocket)
   (message "elpad websocket open %S" websocket))
@@ -273,7 +290,7 @@ Return the buffer's unique ID."
 
 ;;;###autoload
 (defun elpad-handler (httpcon)
-  ;; Initialize the websocket server socket
+  "The Elpad server."
   (unless (equal 'listen (process-status elpad/ws-server))
     (elpad/ws-init))
   (let ((webserver (elnode-webserver-handler-maker elpad-dir)))
