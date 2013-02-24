@@ -11,3 +11,51 @@ Elpad isn't exactly text sharing, you can only share what exists in
 Elpad. You can't ask Elpad to share what you're working on now... only
 a copy of what you're working on now.
 
+== Running a test ==
+
+{{{
+(elpakit-start-server
+  (list "~/work/elpad" "~/work/elnode-auth")
+  'elpad
+  :pre-lisp
+  '(progn 
+  (setq elpad-elnode-port 9001)
+(setq elpad-elnode-host "0.0.0.0") ; host we start elnode on
+(setq elpad-websocket-port 9998)
+(setq elpad-websocket-host "elpad.elnode.org") ; needs to be per host
+(setq elpad-auto-start t)
+(setq elnode-do-init nil)
+)
+}}}
+
+== Making an install ==
+
+Here's the list of stuff I do to make it work:
+
+{{{
+(setq package-user-dir "~/.emacs.elpad.d/elpa")
+(setq package-archives
+      '(("local" . "/home/elpad/elpad-elpa/")
+        ("gnu" . "http://elpa.gnu.org/packages/")
+        ("marmalade" . "http://marmalade-repo.org/packages/")))
+
+;; Elpad customs
+(setq elpad-elnode-port 9001)
+(setq elpad-elnode-host "0.0.0.0") ; host we start elnode on
+(setq elpad-websocket-port 9998)
+(setq elpad-websocket-host "elpad.elnode.org") ; needs to be per host
+(setq elpad-auto-start t)
+(setq elnode-do-init nil)
+(setq ibuffer-formats
+      '((mark
+         modified read-only
+         " " (name 38 38 :left :elide)
+         " " (size 9 -1 :right)
+         " " (mode 16 16 :left :elide)
+         " " filename-and-process)
+        (mark " " (name 16 -1)
+              " " filename)))
+
+(package-initialize)
+(package-refresh-contents)
+}}}
