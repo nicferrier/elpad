@@ -21,6 +21,10 @@ http://elpad.elnode.org
 You could just send posts to that with
 the [[http://github.com/nicferrier/elpad-client|Elpad-Client]].
 
+To run Elpad you could install it
+from [[http://marmalade-repo.org|Marmalade]] and then start an Elnode
+server.
+
 == Running a test ==
 
 {{{
