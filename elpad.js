@@ -7,7 +7,7 @@ var elpad =
                      function (i,e) {
                          var li = $("#pad-list").append(
                              "<li><a id='" + e + "'"
-                                 + " href='/pad/" + e + "'>"
+                                 + " href='/pad/" + e + "/'>"
                                  + e + "</a></li>"
                          );
                      });
