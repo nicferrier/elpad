@@ -298,10 +298,15 @@ Return the buffer's unique ID."
   (websocket-server-close elpad/ws-server))
 
 ;;;###autoload
-(eval-after-load 'elpad
-  '(when (and (boundp 'elpad-auto-start)
-          (> elpad-elnode-port 0)
-          elpad-auto-start)
+(defun elpad-auto-start ()
+  "Auto-start the elpad server.
+
+You still have to call this function, but it is auto-loaded and
+it does the necessary tests on the custom variables."
+  (interactive)
+  (when (and (boundp 'elpad-auto-start)
+             (> elpad-elnode-port 0)
+             elpad-auto-start)
     (elnode-start
      'elpad-handler
      :port elpad-elnode-port
