@@ -11,6 +11,16 @@ Elpad isn't exactly text sharing, you can only share what exists in
 Elpad. You can't ask Elpad to share what you're working on now... only
 a copy of what you're working on now.
 
+== Running Elpad ==
+
+You only need this repo to run an Elpad server. There is a public
+Elpad server at:
+
+http://elpad.elnode.org
+
+You could just send posts to that with
+the [[http://github.com/nicferrier/elpad-client|Elpad-Client]].
+
 == Running a test ==
 
 {{{
